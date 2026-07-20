@@ -16,6 +16,7 @@ const PUBLIC_PATHS = [
   "/api/auth/logout",
   "/api/health",
   "/api/webhooks",
+  "/api/countries",
 ];
 
 export function middleware(req: NextRequest) {
