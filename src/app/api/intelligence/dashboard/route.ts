@@ -25,7 +25,9 @@ async function forward(req: NextRequest, workflow: string) {
       payload[key] = value;
     }
   } else {
-    payload = await req.json().catch(() => ({}));
+    payload = (await req
+      .json()
+      .catch(() => ({}))) as Record<string, unknown>;
   }
   const companyId = req.nextUrl.searchParams.get("company_id") ?? undefined;
 
@@ -55,4 +57,3 @@ async function forward(req: NextRequest, workflow: string) {
 export async function GET(req: NextRequest) {
   return forward(req, "intelligence_dashboard.list");
 }
-
