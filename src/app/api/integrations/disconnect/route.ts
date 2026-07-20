@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireAccessToken } from "@/gateway/middleware/require-access-token";
+import { kernelClient } from "@/gateway/kernel/kernel.client";
+import { KernelError } from "@/gateway/kernel/kernel.errors";
+
+/**
+ * integrations/disconnect
+ *
+ * "Disconnect" for a Business System. Body is { id } for the connection
+ * to disconnect - the Kernel purges its stored credentials as part of
+ * the same update.
+ */
+async function forward(req: NextRequest, workflow: string) {
+  const guard = await requireAccessToken();
+  if (guard instanceof NextResponse) return guard;
+
+  const payload = await req.json().catch(() => ({}));
+  const companyId = req.nextUrl.searchParams.get("company_id") ?? undefined;
+
+  try {
+    const result = await kernelClient.execute({
+      workflow,
+      payload,
+      supabase_access_token: guard,
+      company_id: companyId,
+      request_id: crypto.randomUUID(),
+    });
+    return NextResponse.json(result);
+  } catch (err) {
+    if (err instanceof KernelError) {
+      return NextResponse.json(
+        { error: { code: err.code, message: err.message } },
+        { status: err.status },
+      );
+    }
+    return NextResponse.json(
+      { error: { code: "INTERNAL", message: "Unexpected error" } },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  return forward(req, "integrations.delete");
+}
