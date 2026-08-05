@@ -32,9 +32,19 @@ class KernelClient {
         cache: "no-store",
       });
     } catch (err) {
-        console.error("Kernel fetch failed:", err);
-        throw err;
-      }
+      console.error(err);
+
+      return NextResponse.json(
+        {
+          error: {
+            code: "DEBUG",
+            message: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+          },
+        },
+        { status: 500 }
+      );
+    }
 
     const payload = await res.json().catch(() => ({}));
 
@@ -50,8 +60,19 @@ class KernelClient {
     try {
       res = await fetch(`${env.kernelUrl}${path}`, { cache: "no-store" });
     } catch (err) {
-      console.error("Kernel fetch failed:", err);
-      throw err;
+      console.error(err);
+
+      return NextResponse.json(
+        {
+          error: {
+            code: "DEBUG",
+            message: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+          },
+        },
+        { status: 500 }
+      );
+
     }
 
     const payload = await res.json().catch(() => ({}));
