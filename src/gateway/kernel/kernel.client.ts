@@ -51,6 +51,7 @@ class KernelClient {
       res = await fetch(`${env.kernelUrl}${path}`, { cache: "no-store" });
     } catch (err) {
       console.error("Kernel fetch failed:" err);
+      throw err;
     }
 
     const payload = await res.json().catch(() => ({}));
