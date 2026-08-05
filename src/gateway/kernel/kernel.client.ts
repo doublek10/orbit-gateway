@@ -21,15 +21,8 @@ import type {
 class KernelClient {
   private async post<T>(path: string, body: unknown): Promise<T> {
     let res: Response;
-
     try {
-      const url = `${env.kernelUrl}${path}`;
-
-      console.log("========== KERNEL REQUEST ==========");
-      console.log("Method:", "POST");
-      console.log("URL:", url);
-
-      res = await fetch(url, {
+      res = await fetch(`${env.kernelUrl}${path}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,76 +31,19 @@ class KernelClient {
         body: JSON.stringify(body),
         cache: "no-store",
       });
-
-      console.log("Kernel Response Status:", res.status);
     } catch (err) {
-      console.error("========== KERNEL FETCH FAILED ==========");
-      console.error("Kernel URL:", `${env.kernelUrl}${path}`);
-      console.error("Error:", err);
+        console.error("Kernel fetch failed:", err);
 
-      if (err instanceof Error) {
-        console.error("Name:", err.name);
-        console.error("Message:", err.message);
-        console.error("Stack:", err.stack);
-
-        const cause = (err as Error & { cause?: unknown }).cause;
-        console.error("Cause:", cause);
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "code" in cause
-        ) {
-          console.error(
-            "Cause Code:",
-            (cause as { code?: unknown }).code
-          );
+        if (err instanceof Error) {
+          throw new Error(err.stack || err.message);
         }
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "errno" in cause
-        ) {
-          console.error(
-            "Cause Errno:",
-            (cause as { errno?: unknown }).errno
-          );
-        }
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "address" in cause
-        ) {
-          console.error(
-            "Cause Address:",
-            (cause as { address?: unknown }).address
-          );
-        }
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "port" in cause
-        ) {
-          console.error(
-            "Cause Port:",
-            (cause as { port?: unknown }).port
-          );
-        }
+        
+        throw err;
       }
-
-      throw err;
-    }
 
     const payload = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      console.error("========== KERNEL ERROR RESPONSE ==========");
-      console.error("Status:", res.status);
-      console.error("Payload:", payload);
-
       throw translateKernelError(res.status, payload);
     }
 
@@ -116,78 +52,13 @@ class KernelClient {
 
   private async get<T>(path: string): Promise<T> {
     let res: Response;
-
     try {
-      const url = `${env.kernelUrl}${path}`;
-
-      console.log("========== KERNEL REQUEST ==========");
-      console.log("Method:", "GET");
-      console.log("URL:", url);
-
-      res = await fetch(url, {
-        cache: "no-store",
-        headers: {
-          "X-Gateway-Secret": env.gatewaySharedSecret,
-        },
-      });
-
-      console.log("Kernel Response Status:", res.status);
+      res = await fetch(`${env.kernelUrl}${path}`, { cache: "no-store" });
     } catch (err) {
-      console.error("========== KERNEL FETCH FAILED ==========");
-      console.error("Kernel URL:", `${env.kernelUrl}${path}`);
-      console.error("Error:", err);
+      console.error("Kernel fetch failed:", err);
 
       if (err instanceof Error) {
-        console.error("Name:", err.name);
-        console.error("Message:", err.message);
-        console.error("Stack:", err.stack);
-
-        const cause = (err as Error & { cause?: unknown }).cause;
-        console.error("Cause:", cause);
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "code" in cause
-        ) {
-          console.error(
-            "Cause Code:",
-            (cause as { code?: unknown }).code
-          );
-        }
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "errno" in cause
-        ) {
-          console.error(
-            "Cause Errno:",
-            (cause as { errno?: unknown }).errno
-          );
-        }
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "address" in cause
-        ) {
-          console.error(
-            "Cause Address:",
-            (cause as { address?: unknown }).address
-          );
-        }
-
-        if (
-          cause &&
-          typeof cause === "object" &&
-          "port" in cause
-        ) {
-          console.error(
-            "Cause Port:",
-            (cause as { port?: unknown }).port
-          );
-        }
+        throw new Error(err.stack || err.message);
       }
 
       throw err;
@@ -196,10 +67,6 @@ class KernelClient {
     const payload = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      console.error("========== KERNEL ERROR RESPONSE ==========");
-      console.error("Status:", res.status);
-      console.error("Payload:", payload);
-
       throw translateKernelError(res.status, payload);
     }
 
@@ -217,23 +84,16 @@ class KernelClient {
   }
 
   async refresh(refreshToken: string): Promise<SessionOut> {
-    return this.post<SessionOut>("/kernel/v1/auth/refresh", {
-      refresh_token: refreshToken,
-    });
+    return this.post<SessionOut>("/kernel/v1/auth/refresh", { refresh_token: refreshToken });
   }
 
   async logout(accessToken: string): Promise<{ ok: boolean }> {
-    return this.post<{ ok: boolean }>("/kernel/v1/auth/logout", {
-      access_token: accessToken,
-    });
+    return this.post<{ ok: boolean }>("/kernel/v1/auth/logout", { access_token: accessToken });
   }
 
   // --- Every other authenticated request goes through these two ---
 
-  async resolveIdentity(
-    accessToken: string,
-    companyId?: string
-  ): Promise<ExecutionContext> {
+  async resolveIdentity(accessToken: string, companyId?: string): Promise<ExecutionContext> {
     return this.post<ExecutionContext>("/kernel/v1/identity/resolve", {
       supabase_access_token: accessToken,
       company_id: companyId,
@@ -245,13 +105,7 @@ class KernelClient {
   }
 
   async health(): Promise<{ status: string; database: boolean }> {
-    const res = await fetch(`${env.kernelUrl}/kernel/v1/health`, {
-      cache: "no-store",
-      headers: {
-        "X-Gateway-Secret": env.gatewaySharedSecret,
-      },
-    });
-
+    const res = await fetch(`${env.kernelUrl}/kernel/v1/health`, { cache: "no-store" });
     return res.json();
   }
 
