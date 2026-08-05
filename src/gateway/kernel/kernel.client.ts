@@ -50,7 +50,7 @@ class KernelClient {
     try {
       res = await fetch(`${env.kernelUrl}${path}`, { cache: "no-store" });
     } catch (err) {
-      console.error("Kernel fetch failed:" err);
+      console.error("Kernel fetch failed:", err);
       throw err;
     }
 
