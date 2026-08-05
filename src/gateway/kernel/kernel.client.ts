@@ -46,8 +46,56 @@ class KernelClient {
       console.error("Error:", err);
 
       if (err instanceof Error) {
+        console.error("Name:", err.name);
         console.error("Message:", err.message);
         console.error("Stack:", err.stack);
+
+        const cause = (err as Error & { cause?: unknown }).cause;
+        console.error("Cause:", cause);
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "code" in cause
+        ) {
+          console.error(
+            "Cause Code:",
+            (cause as { code?: unknown }).code
+          );
+        }
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "errno" in cause
+        ) {
+          console.error(
+            "Cause Errno:",
+            (cause as { errno?: unknown }).errno
+          );
+        }
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "address" in cause
+        ) {
+          console.error(
+            "Cause Address:",
+            (cause as { address?: unknown }).address
+          );
+        }
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "port" in cause
+        ) {
+          console.error(
+            "Cause Port:",
+            (cause as { port?: unknown }).port
+          );
+        }
       }
 
       throw err;
@@ -90,8 +138,56 @@ class KernelClient {
       console.error("Error:", err);
 
       if (err instanceof Error) {
+        console.error("Name:", err.name);
         console.error("Message:", err.message);
         console.error("Stack:", err.stack);
+
+        const cause = (err as Error & { cause?: unknown }).cause;
+        console.error("Cause:", cause);
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "code" in cause
+        ) {
+          console.error(
+            "Cause Code:",
+            (cause as { code?: unknown }).code
+          );
+        }
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "errno" in cause
+        ) {
+          console.error(
+            "Cause Errno:",
+            (cause as { errno?: unknown }).errno
+          );
+        }
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "address" in cause
+        ) {
+          console.error(
+            "Cause Address:",
+            (cause as { address?: unknown }).address
+          );
+        }
+
+        if (
+          cause &&
+          typeof cause === "object" &&
+          "port" in cause
+        ) {
+          console.error(
+            "Cause Port:",
+            (cause as { port?: unknown }).port
+          );
+        }
       }
 
       throw err;
