@@ -31,9 +31,10 @@ class KernelClient {
         body: JSON.stringify(body),
         cache: "no-store",
       });
-    } catch {
-      throw translateKernelError(502, { detail: "Could not reach the Kernel" });
-    }
+    } catch (err) {
+        console.error("Kernel fetch failed:", err);
+        throw err;
+      }
 
     const payload = await res.json().catch(() => ({}));
 
@@ -48,8 +49,8 @@ class KernelClient {
     let res: Response;
     try {
       res = await fetch(`${env.kernelUrl}${path}`, { cache: "no-store" });
-    } catch {
-      throw translateKernelError(502, { detail: "Could not reach the Kernel" });
+    } catch (err) {
+      console.error("Kernel fetch failed:" err);
     }
 
     const payload = await res.json().catch(() => ({}));
