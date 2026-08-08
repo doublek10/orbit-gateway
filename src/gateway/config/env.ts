@@ -14,8 +14,7 @@ export const env = {
   // browser and the Kernel. The Gateway does not sign, verify, or
   // interpret these values - it only stores and forwards them. That
   // decision-making happens exclusively in the Kernel.
-  accessTokenCookie: "orbit_access_token",
-  refreshTokenCookie: "orbit_refresh_token",
+  sessionCookie: "orbit_session",
 
   nodeEnv: process.env.NODE_ENV ?? "development",
 };
