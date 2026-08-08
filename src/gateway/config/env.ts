@@ -13,7 +13,6 @@ export const env = {
   // Cookie names the Gateway uses to carry Supabase tokens between the
   // browser and the Kernel. The Gateway does not sign, verify, or
   // interpret these values - it only stores and forwards them. That
-  // decision-making happens exclusively in the Kernel.
   sessionCookie: "orbit_session",
 
   nodeEnv: process.env.NODE_ENV ?? "development",
