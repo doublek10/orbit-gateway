@@ -14,7 +14,6 @@ import type { SessionOut } from "@/gateway/kernel/kernel.types";
  * first-party cookie). That proxying is fetch()-based, and multiple
  * `Set-Cookie` headers on a single proxied response are not reliably
  * preserved - one of them silently gets lost or corrupted in transit.
- * A single cookie sidesteps that entirely.
  */
 interface StoredSession {
   access_token: string;
