@@ -16,7 +16,6 @@ const PUBLIC_PATHS = [
   "/api/auth/logout",
   "/api/health",
   "/api/webhooks",
-  "/api/countries",
 ];
 
 export function middleware(req: NextRequest) {
@@ -30,7 +29,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const hasToken = req.cookies.has(env.accessTokenCookie);
+  const hasToken = req.cookies.has(env.sessionCookie);
   if (!hasToken) {
     return NextResponse.json(
       { error: { code: "UNAUTHENTICATED", message: "No credentials presented" } },
