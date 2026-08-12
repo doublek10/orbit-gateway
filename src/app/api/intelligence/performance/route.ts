@@ -25,8 +25,9 @@ async function forward(req: NextRequest, workflow: string) {
       payload[key] = value;
     }
   } else {
-    payload = await req.json().catch(() => ({}));
+    payload = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   }
+
   const companyId = req.nextUrl.searchParams.get("company_id") ?? undefined;
 
   try {
@@ -37,6 +38,7 @@ async function forward(req: NextRequest, workflow: string) {
       company_id: companyId,
       request_id: crypto.randomUUID(),
     });
+
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof KernelError) {
@@ -45,6 +47,7 @@ async function forward(req: NextRequest, workflow: string) {
         { status: err.status },
       );
     }
+
     return NextResponse.json(
       { error: { code: "INTERNAL", message: "Unexpected error" } },
       { status: 500 },
@@ -55,4 +58,3 @@ async function forward(req: NextRequest, workflow: string) {
 export async function GET(req: NextRequest) {
   return forward(req, "intelligence_performance.list");
 }
-

@@ -4,30 +4,19 @@ import { kernelClient } from "@/gateway/kernel/kernel.client";
 import { KernelError } from "@/gateway/kernel/kernel.errors";
 
 /**
- * intelligence/settings
+ * connector/preferences
  *
- * Alias for preferences via PUT, per the specs example API list - same underlying store.
- * Same relay pattern every other Gateway route uses - the Gateway
- * decides nothing beyond "is there a credential to forward"; the Kernel
- * re-verifies the token and the Intelligence Engine (owned entirely by
- * kernel/intelligence_engine/) does the actual work. GET query params
- * other than company_id are passed through as the workflow payload,
- * since these reads take filters (report_type, limit, metric_key, ...).
+ * Remembers what the Connector Generator wizard should prefill next
+ * time: language, database engine, and Connector URL. Same relay
+ * pattern as every other Gateway route - the Kernel's
+ * ConnectorPreferencesStore owns the actual persistence and the
+ * "never store a password" rule; this route just forwards.
  */
 async function forward(req: NextRequest, workflow: string) {
   const guard = await requireAccessToken();
   if (guard instanceof NextResponse) return guard;
 
-  let payload: Record<string, unknown> = {};
-  if (req.method === "GET") {
-    for (const [key, value] of req.nextUrl.searchParams.entries()) {
-      if (key === "company_id") continue;
-      payload[key] = value;
-    }
-  } else {
-    payload = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-  }
-
+  const payload = req.method === "GET" ? {} : await req.json().catch(() => ({}));
   const companyId = req.nextUrl.searchParams.get("company_id") ?? undefined;
 
   try {
@@ -38,7 +27,6 @@ async function forward(req: NextRequest, workflow: string) {
       company_id: companyId,
       request_id: crypto.randomUUID(),
     });
-
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof KernelError) {
@@ -47,7 +35,6 @@ async function forward(req: NextRequest, workflow: string) {
         { status: err.status },
       );
     }
-
     return NextResponse.json(
       { error: { code: "INTERNAL", message: "Unexpected error" } },
       { status: 500 },
@@ -55,6 +42,14 @@ async function forward(req: NextRequest, workflow: string) {
   }
 }
 
-export async function PUT(req: NextRequest) {
-  return forward(req, "intelligence_preferences.create");
+export async function GET(req: NextRequest) {
+  return forward(req, "connector_preferences.list");
+}
+
+export async function POST(req: NextRequest) {
+  return forward(req, "connector_preferences.create");
+}
+
+export async function DELETE(req: NextRequest) {
+  return forward(req, "connector_preferences.delete");
 }

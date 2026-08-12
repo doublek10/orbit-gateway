@@ -4,41 +4,29 @@ import { kernelClient } from "@/gateway/kernel/kernel.client";
 import { KernelError } from "@/gateway/kernel/kernel.errors";
 
 /**
- * intelligence/forecast
+ * connector/generate
  *
- * Deterministic 30/90 day cash forecast.
- * Same relay pattern every other Gateway route uses - the Gateway
- * decides nothing beyond "is there a credential to forward"; the Kernel
- * re-verifies the token and the Intelligence Engine (owned entirely by
- * kernel/intelligence_engine/) does the actual work. GET query params
- * other than company_id are passed through as the workflow payload,
- * since these reads take filters (report_type, limit, metric_key, ...).
+ * Connector Generator - the reverse of the SDK Generator. The Gateway
+ * relays language, database, connection, and table map straight to
+ * the Kernel's "connector.generate" workflow, which renders the code
+ * and returns it. Stateless - nothing is persisted here or in the
+ * Kernel, so the same request always produces a fresh render.
  */
-async function forward(req: NextRequest, workflow: string) {
+export async function POST(req: NextRequest) {
   const guard = await requireAccessToken();
   if (guard instanceof NextResponse) return guard;
 
-  let payload: Record<string, unknown> = {};
-  if (req.method === "GET") {
-    for (const [key, value] of req.nextUrl.searchParams.entries()) {
-      if (key === "company_id") continue;
-      payload[key] = value;
-    }
-  } else {
-    payload = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-  }
-
+  const payload = await req.json().catch(() => ({}));
   const companyId = req.nextUrl.searchParams.get("company_id") ?? undefined;
 
   try {
     const result = await kernelClient.execute({
-      workflow,
+      workflow: "connector.generate",
       payload,
       supabase_access_token: guard,
       company_id: companyId,
       request_id: crypto.randomUUID(),
     });
-
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof KernelError) {
@@ -47,14 +35,9 @@ async function forward(req: NextRequest, workflow: string) {
         { status: err.status },
       );
     }
-
     return NextResponse.json(
       { error: { code: "INTERNAL", message: "Unexpected error" } },
       { status: 500 },
     );
   }
-}
-
-export async function GET(req: NextRequest) {
-  return forward(req, "intelligence_forecast.list");
 }

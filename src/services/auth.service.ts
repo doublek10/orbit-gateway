@@ -34,28 +34,37 @@ export const authService = {
   },
 
   async currentSession(): Promise<SessionView | null> {
-    const token = await getAccessToken();
-    if (!token) return null;
+  const token = await getAccessToken();
+  if (!token) {
+    console.log("[currentSession] no access token cookie present");
+    return null;
+  }
+
+  try {
+    const ctx = await kernelClient.resolveIdentity(token);
+    const view = fromExecutionContext(ctx);
+    if (!view) {
+      console.log("[currentSession] identity resolved but no company on context", ctx);
+    }
+    return view;
+  } catch (err) {
+    console.log("[currentSession] resolveIdentity failed, trying refresh:", err);
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) {
+      console.log("[currentSession] no refresh token cookie present");
+      return null;
+    }
 
     try {
-      const ctx = await kernelClient.resolveIdentity(token);
+      const session = await kernelClient.refresh(refreshToken);
+      await setAuthCookies(session);
+      const ctx = await kernelClient.resolveIdentity(session.access_token);
       return fromExecutionContext(ctx);
-    } catch {
-      // Access token expired or invalid - try the refresh token once
-      // before giving up, exactly like a security guard checking a
-      // backup ID before turning someone away.
-      const refreshToken = await getRefreshToken();
-      if (!refreshToken) return null;
-
-      try {
-        const session = await kernelClient.refresh(refreshToken);
-        await setAuthCookies(session);
-        const ctx = await kernelClient.resolveIdentity(session.access_token);
-        return fromExecutionContext(ctx);
-      } catch {
-        await clearAuthCookies();
-        return null;
-      }
+    } catch (refreshErr) {
+      console.log("[currentSession] refresh path also failed:", refreshErr);
+      await clearAuthCookies();
+      return null;
     }
-  },
+  }
+},
 };

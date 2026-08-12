@@ -29,7 +29,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const hasToken = req.cookies.has(env.accessTokenCookie);
+  const hasToken = req.cookies.has(env.sessionCookie);
   if (!hasToken) {
     return NextResponse.json(
       { error: { code: "UNAUTHENTICATED", message: "No credentials presented" } },

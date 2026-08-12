@@ -16,7 +16,6 @@ async function forward(req: NextRequest, workflow: string) {
   const guard = await requireAccessToken();
   if (guard instanceof NextResponse) return guard;
 
-<<<<<<< HEAD
   const payload =
     req.method === "GET"
       ? {
@@ -28,9 +27,7 @@ async function forward(req: NextRequest, workflow: string) {
           }),
         }
       : await req.json().catch(() => ({}));
-=======
-  const payload = req.method === "GET" ? {} : await req.json().catch(() => ({}));
->>>>>>> aa746f7017a331b8c4ac2e0f198e337c0d4c8001
+
   const companyId = req.nextUrl.searchParams.get("company_id") ?? undefined;
 
   try {
