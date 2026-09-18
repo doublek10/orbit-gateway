@@ -59,3 +59,16 @@ export interface ExecuteRequest {
   company_id?: string;
   request_id?: string;
 }
+
+// --- WhatsApp Channel ---
+
+export interface WhatsAppInboundRequest {
+  phone_number: string;
+  text: string;
+  wa_message_id?: string;
+}
+
+export interface WhatsAppInboundResponse {
+  reply: string;
+}
+

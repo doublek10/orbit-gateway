@@ -16,6 +16,12 @@ const PUBLIC_PATHS = [
   "/api/auth/logout",
   "/api/health",
   "/api/webhooks",
+  // Meta calls this directly - there is no Orbit session, by definition.
+  // It's not unauthenticated in an unsafe sense: the POST handler itself
+  // verifies Meta's X-Hub-Signature-256 before trusting anything, and
+  // the GET handler only ever echoes back Meta's own challenge if
+  // WHATSAPP_VERIFY_TOKEN matches. See src/app/api/whatsapp/webhook/route.ts.
+  "/api/whatsapp/webhook",
 ];
 
 export function middleware(req: NextRequest) {

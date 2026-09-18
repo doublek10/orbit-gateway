@@ -8,6 +8,8 @@ import type {
   LoginRequest,
   SessionOut,
   SignupRequest,
+  WhatsAppInboundRequest,
+  WhatsAppInboundResponse,
 } from "@/gateway/kernel/kernel.types";
 
 /**
@@ -192,6 +194,13 @@ class KernelClient {
 
   async countries(): Promise<CountryOut[]> {
     return this.get<CountryOut[]>("/kernel/v1/countries");
+  }
+
+  // --- WhatsApp Channel: called only by the webhook route, only after
+  // it has verified Meta's request signature itself. ---
+
+  async whatsappInbound(input: WhatsAppInboundRequest): Promise<WhatsAppInboundResponse> {
+    return this.post<WhatsAppInboundResponse>("/kernel/v1/whatsapp/inbound", input);
   }
 }
 
